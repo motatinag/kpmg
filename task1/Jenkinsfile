@@ -1,0 +1,95 @@
+pipeline {
+  agent {
+    label '<slavename>'
+  }
+  environment {
+    AZURE_CREDENTIALS_ID = '<subscriptionserviceprinciple>'
+ 
+    AZURECLI_VERSION = '2.11.1'
+    TERRAFORM_VERSION = '0.12'
+  }
+  options {
+    disableConcurrentBuilds()
+  }
+  stages {
+    stage ('Prepare Terraform Environment') {
+      environment {
+        //Set all these values for each environment
+        VARIABLES_FILE = '<tfvarfile>'
+        TF_BACKEND_RG = '<statefile storing RG>'
+        TF_BACKEND_ACCOUNT = '<storageaccount>'
+        TF_BACKEND_LOCATION = '<location>'
+        TF_BACKEND_CONTAINER = '<>blobcontainer'
+        TF_BACKEND_KEY = '<statefilename>'
+      }
+      stages {
+        stage('Terraform Init') {
+          
+          steps {
+             withCredentials([azureServicePrincipal(credentialsId: "${<subscriptionserviceprinciple>}",
+                                subscriptionIdVariable: 'SUBS_ID',
+                                clientIdVariable: 'CLIENT_ID',
+                                clientSecretVariable: 'CLIENT_SECRET',
+                                tenantIdVariable: 'TENANT_ID')]) {
+                                    sh """
+                                    terraform init
+                                    """
+          }
+        }
+        stage('Terraform Plan') {
+          
+          steps {
+               withCredentials([azureServicePrincipal(credentialsId: "${<subscriptionserviceprinciple>}",
+                                subscriptionIdVariable: 'SUBS_ID',
+                                clientIdVariable: 'CLIENT_ID',
+                                clientSecretVariable: 'CLIENT_SECRET',
+                                tenantIdVariable: 'TENANT_ID')]) {
+              sh """
+              terraform plan
+              """
+              
+            
+          }
+          }
+        }
+      }
+    }
+    stage('Validate Terraform Plan') {
+      
+      steps {
+        timeout(time: 30, unit: 'MINUTES') {
+          input(message: 'Apply this terraform plan?')
+        }
+      }
+    }
+  stage('Apply Terraform Plan') {
+ 
+      steps {
+           withCredentials([azureServicePrincipal(credentialsId: "${<subscriptionserviceprinciple>}",
+                                subscriptionIdVariable: 'SUBS_ID',
+                                clientIdVariable: 'CLIENT_ID',
+                                clientSecretVariable: 'CLIENT_SECRET',
+                                tenantIdVariable: 'TENANT_ID')]) {
+          sh """
+          terraform apply -auto-approve
+          """
+        
+      }
+      }
+    }
+
+   /* stage ('Tear down') {
+      steps {
+           withCredentials([azureServicePrincipal(credentialsId: "${<subscriptionserviceprinciple>}",
+                                subscriptionIdVariable: 'SUBS_ID',
+                                clientIdVariable: 'CLIENT_ID',
+                                clientSecretVariable: 'CLIENT_SECRET',
+                                tenantIdVariable: 'TENANT_ID')]) {
+          sh """
+            terraform destroy
+          """
+        }
+      }
+    }*/
+  }
+}
