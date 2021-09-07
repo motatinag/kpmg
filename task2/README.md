@@ -6,11 +6,11 @@ pip3 install pipenv
 
 python3 md.py
  output:
- {
-    "a": "",
-    "b": "",
-    "c": "",
-    "meta-data": ""
+{
+    "a": {},
+    "b": {},
+    "c": {},
+    "meta-data": {}
 }
 
 
@@ -18,6 +18,6 @@ python3 mdquery.py
 
 output:
 Enter the key name to get the value
-c
-['']
+a
+[{}]
 
