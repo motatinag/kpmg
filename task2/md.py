@@ -21,7 +21,7 @@ def expand_jsontree(url, arr):
 
 
 def metadata():
-    path = ["meta-data", "a", "b", "c"] #3. path is considered as an array
+    path = ["meta-data/", "a/", "b/", "c/"] #3. path is considered as an array
     result = expand_jsontree(metadata_url, path) # 4. calling expand_jsontree function by passing url and path as param
     return result
 
